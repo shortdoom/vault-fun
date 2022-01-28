@@ -4,6 +4,7 @@ node_modules
 cache
 artifacts
 factories
+typechain
 
 .env
 .vscode

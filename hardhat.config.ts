@@ -59,14 +59,21 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
+const fork_url: string = "https://eth-mainnet.alchemyapi.io/v2/" + ALCHEMY_KEY;
+
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
+      forking: {
+        url: fork_url,
+        blockNumber: 13603028,
+      },
       accounts: {
         mnemonic: MNEMONIC,
       },
       chainId: chainIds.hardhat,
+      blockGasLimit: 28500000 // this is also eth mainnet current block limit
     },
     mainnet: createTestnetConfig("mainnet"),
     goerli: createTestnetConfig("goerli"),
@@ -77,10 +84,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.6.12",
-      },
-      {
-        version: "0.6.6",
+        version: "0.8.11",
       },
     ],
   },
