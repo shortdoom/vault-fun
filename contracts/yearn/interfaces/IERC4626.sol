@@ -55,6 +55,7 @@ abstract contract IERC4626 is ERC20 {
     //////////////////////////////////////////////////////////////*/
 
     function calculateUnderlying(uint256 shareAmount) public view virtual returns (uint256);
+    
     function calculateShares(uint256 underlyingAmount) public view virtual returns (uint256);
     /** 
       @notice The underlying token the Vault accepts.
