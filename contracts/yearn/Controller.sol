@@ -3,16 +3,12 @@
 pragma solidity ^0.8.0;
 
 import { IERC20 } from "./interfaces/IERC20.sol";
-import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import "./interfaces/OneSplitAudit.sol";
 import "./interfaces/Strategy.sol";
+import "./interfaces/Converter.sol";
 
 contract Controller {
-    // using SafeTransferLib for ERC20;
-    // using SafeERC20 for IERC20;
-    // using Address for address;
-    // using SafeMath for uint256;
-
     address public governance;
     address public strategist;
 
@@ -75,6 +71,14 @@ contract Controller {
         approvedStrategies[_token][_strategy] = false;
     }
 
+    function setConverter(
+        address _input,
+        address _output,
+        address _converter
+    ) public {
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+        converters[_input][_output] = _converter;
+    }
 
     function setStrategy(address _token, address _strategy) public {
         require(msg.sender == strategist || msg.sender == governance, "!strategist");
@@ -89,8 +93,16 @@ contract Controller {
 
     function earn(address _token, uint256 _amount) public {
         address _strategy = strategies[_token];
-        IERC20(_token).transfer(_strategy, _amount);
-        Strategy(_strategy).deposit();
+        address _want = Strategy(_strategy).want();
+        if (_want != _token) {
+            address converter = converters[_token][_want];
+            IERC20(_token).transfer(converter, _amount);
+            _amount = Converter(converter).convert(_strategy);
+            IERC20(_want).transfer(_strategy, _amount);
+        } else {
+            IERC20(_token).transfer(_strategy, _amount);
+            Strategy(_strategy).deposit();
+        }
     }
 
     function balanceOf(address _token) external view returns (uint256) {
@@ -147,7 +159,7 @@ contract Controller {
             if (_after > _before) {
                 _amount = _after - _before;
                 uint256 _reward = (_amount * split) / max;
-                earn(_want, _amount -_reward);
+                earn(_want, _amount - _reward);
                 IERC20(_want).transfer(rewards, _reward);
             }
         }

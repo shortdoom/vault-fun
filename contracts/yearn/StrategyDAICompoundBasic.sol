@@ -7,11 +7,10 @@ import "./interfaces/cToken.sol";
 import "./interfaces/Comptroller.sol";
 import "./interfaces/Uni.sol";
 import "./interfaces/IController.sol";
+import "hardhat/console.sol";
+
 
 contract StrategyDAICompoundBasic{
-    // using SafeERC20 for IERC20;
-    // using Address for address;
-    // using SafeMath for uint256;
 
     address public constant want = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     // Comptroller address for compound.finance
@@ -118,6 +117,7 @@ contract StrategyDAICompoundBasic{
         require(msg.sender == strategist || msg.sender == governance, "!authorized");
         compound.claimComp(address(this));
         uint256 _comp = IERC20(comp).balanceOf(address(this));
+        console.log("comp", _comp); // ADD
         if (_comp > 0) {
             IERC20(comp).approve(uni, 0);
             IERC20(comp).approve(uni, _comp);

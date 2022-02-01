@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0;
 
-import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
-import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
+import { ERC20 } from "@rari-capital/solmate/src/tokens/ERC20.sol";
+import { SafeTransferLib } from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
+import {FixedPointMathLib} from "./utils/FixedPointMath.sol";
 
 /// @notice Minimal ERC4646 tokenized vault implementation.
-/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixinz/ERC4626.sol)
+/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 abstract contract ERC4626 is ERC20 {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
@@ -15,127 +15,133 @@ abstract contract ERC4626 is ERC20 {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Deposit(address indexed from, address indexed to, uint256 underlyingAmount);
+    event Deposit(address indexed from, address indexed to, uint256 amount);
 
-    event Withdraw(address indexed from, address indexed to, uint256 underlyingAmount);
+    event Withdraw(address indexed from, address indexed to, uint256 amount);
 
     /*///////////////////////////////////////////////////////////////
-                                IMMUTABLES
+                               IMMUTABLES
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice The underlying token the vault accepts.
-    ERC20 public immutable underlying;
-
-    /// @notice The base unit of the underlying token and hence vault.
-    /// @dev Equal to 10 ** decimals. Used for fixed point arithmetic.
-    uint256 internal immutable baseUnit;
-
-    /// @notice Creates a new vault that accepts a specific underlying token.
-    /// @param _underlying The ERC20 compliant token the vault should accept.
-    /// @param _name The name for the vault token.
-    /// @param _symbol The symbol for the vault token.
+    ERC20 public immutable asset;
 
     constructor(
-        ERC20 _underlying,
+        ERC20 _asset,
         string memory _name,
         string memory _symbol
-    ) ERC20(_name, _symbol, _underlying.decimals()) {
-        underlying = _underlying;
-
-        baseUnit = 10**decimals;
+    ) ERC20(_name, _symbol, _asset.decimals()) {
+        asset = _asset;
     }
 
     /*///////////////////////////////////////////////////////////////
                         DEPOSIT/WITHDRAWAL LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function deposit(address to, uint256 underlyingAmount) public virtual returns (uint256 shares) {
-        _mint(to, shares = calculateShares(underlyingAmount));
+    function deposit(uint256 amount, address to) public virtual returns (uint256 shares) {
+        // Check for rounding error since we round down in previewDeposit.
+        require((shares = previewDeposit(amount)) != 0, "ZERO_SHARES");
 
-        emit Deposit(msg.sender, to, underlyingAmount);
+        _mint(to, shares);
 
-        underlying.safeTransferFrom(msg.sender, address(this), underlyingAmount);
+        emit Deposit(msg.sender, to, amount);
 
-        afterDeposit(underlyingAmount);
+        asset.safeTransferFrom(msg.sender, address(this), amount);
+
+        afterDeposit(amount);
     }
 
-    function mint(address to, uint256 shareAmount) public virtual returns (uint256 underlyingAmount) {
-        underlyingAmount = calculateUnderlying(shareAmount);
-        
-        _mint(to, shareAmount);
+    function mint(uint256 shares, address to) public virtual returns (uint256 amount) {
+        _mint(to, amount = previewMint(shares)); // No need to check for rounding error, previewMint rounds up.
 
-        emit Deposit(msg.sender, to, underlyingAmount);
+        emit Deposit(msg.sender, to, amount);
 
-        underlying.safeTransferFrom(msg.sender, address(this), underlyingAmount);
+        asset.safeTransferFrom(msg.sender, address(this), amount);
 
-        afterDeposit(underlyingAmount);
+        afterDeposit(amount);
     }
 
-    function withdraw(address from, address to, uint256 underlyingAmount) public virtual returns (uint256 shares) {
-        shares = calculateShares(underlyingAmount);
+    function withdraw(
+        uint256 amount,
+        address to,
+        address from
+    ) public virtual returns (uint256 shares) {
+        uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
 
-        if (msg.sender != from && allowance[from][msg.sender] != type(uint256).max) {
-            allowance[from][msg.sender] -= shares;
-        }
-        
+        if (msg.sender != from && allowed != type(uint256).max) allowance[from][msg.sender] = allowed - shares;
+
+        _burn(from, shares = previewWithdraw(amount)); // No need to check for rounding error, previewWithdraw rounds up.
+
+        emit Withdraw(from, to, amount);
+
+        beforeWithdraw(amount);
+
+        asset.safeTransfer(to, amount);
+    }
+
+    function redeem(
+        uint256 shares,
+        address to,
+        address from
+    ) public virtual returns (uint256 amount) {
+        uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
+
+        if (msg.sender != from && allowed != type(uint256).max) allowance[from][msg.sender] = allowed - shares;
+
+        // Check for rounding error since we round down in previewRedeem.
+        require((amount = previewRedeem(shares)) != 0, "ZERO_ASSETS");
+
         _burn(from, shares);
 
-        emit Withdraw(from, to, underlyingAmount);
+        emit Withdraw(from, to, amount);
 
-        beforeWithdraw(underlyingAmount);
+        beforeWithdraw(amount);
 
-        underlying.safeTransfer(to, underlyingAmount);
+        asset.safeTransfer(to, amount);
     }
-
-    function redeem(address from, address to, uint256 shareAmount) public virtual returns (uint256 underlyingAmount) {
-        if (msg.sender != from && allowance[from][msg.sender] != type(uint256).max) {
-            allowance[from][msg.sender] -= shareAmount;
-        }
-
-        underlyingAmount = calculateUnderlying(shareAmount);
-
-        _burn(from, shareAmount);
-
-        emit Withdraw(from, to, underlyingAmount);
-
-        beforeWithdraw(underlyingAmount);
-
-        underlying.safeTransfer(to, underlyingAmount);
-    }
-
-    function beforeWithdraw(uint256 underlyingAmount) internal virtual {}
-
-    function afterDeposit(uint256 underlyingAmount) internal virtual {}
 
     /*///////////////////////////////////////////////////////////////
-                        VAULT ACCOUNTING LOGIC
+                           ACCOUNTING LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function totalUnderlying() public view virtual returns (uint256) {
-        return underlying.balanceOf(address(this));
+    function totalAssets() public view virtual returns (uint256);
+
+    function assetsOf(address user) public view virtual returns (uint256) {
+        return previewRedeem(balanceOf[user]);
     }
 
-    function balanceOfUnderlying(address user) public view virtual returns (uint256) {
-        return calculateUnderlying(balanceOf[user]);
+    function assetsPerShare() public view virtual returns (uint256) {
+        return previewRedeem(10**decimals);
     }
 
-    function calculateShares(uint256 underlyingAmount) public view virtual returns (uint256) {
-        uint256 shareSupply = totalSupply;
+    function previewDeposit(uint256 amount) public view virtual returns (uint256 shares) {
+        uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
-        if (shareSupply == 0) return underlyingAmount;
-
-        uint256 exchangeRate = totalUnderlying().fdiv(shareSupply, baseUnit);
-
-        return underlyingAmount.fdiv(exchangeRate, baseUnit);
+        return supply == 0 ? amount : amount.mulDivDown(totalSupply, totalAssets());
     }
 
-    function calculateUnderlying(uint256 shareAmount) public view virtual returns (uint256) {
-        uint256 shareSupply = totalSupply;
-        
-        if (shareSupply == 0) return shareAmount;
+    function previewMint(uint256 shares) public view virtual returns (uint256 amount) {
+        uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
-        uint256 exchangeRate = totalUnderlying().fdiv(shareSupply, baseUnit);
-
-        return shareAmount.fmul(exchangeRate, baseUnit);
+        return supply == 0 ? shares : shares.mulDivUp(totalAssets(), totalSupply);
     }
+
+    function previewWithdraw(uint256 amount) public view virtual returns (uint256 shares) {
+        uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
+
+        return supply == 0 ? amount : amount.mulDivUp(totalSupply, totalAssets());
+    }
+
+    function previewRedeem(uint256 shares) public view virtual returns (uint256 amount) {
+        uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
+
+        return supply == 0 ? shares : shares.mulDivDown(totalAssets(), totalSupply);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                         INTERNAL HOOKS LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function beforeWithdraw(uint256 amount) internal virtual {}
+
+    function afterDeposit(uint256 amount) internal virtual {}
 }

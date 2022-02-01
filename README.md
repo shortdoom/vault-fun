@@ -2,6 +2,8 @@
 
 ERC4626.sol is minimal ready implementation for token specific Vault. Should be deployed as-is on per token basis. You can interact with ERC4626.sol (Vault for token) by creating interface in your Strategy contract and then calling ERC4626.sol functions from there. ERC4626.sol should have more logic than what is currently provided, ie. calculations for underlying. VaultFun could be for example an Strategy, using funds from the Vault.
 
+fmulUp lib is not in solmate npm! wrong calcs
+
 ## calculateShares
 
 totalSupply == all ever minted (through deposit into underlying)

@@ -7,9 +7,6 @@ import { IERC20 } from "./interfaces/IERC20.sol";
 import "hardhat/console.sol";
 import "./interfaces/IController.sol";
 
-// Just fucking implement compoundDAIBasic strat
-// Does it work? :)
-
 contract Vault is ERC4626 {
     uint256 public min = 9500;
     uint256 public constant max = 10000;
@@ -28,6 +25,10 @@ contract Vault is ERC4626 {
         governance = _governance;
     }
 
+    function totalAssets() public view override returns (uint256) {
+        return asset.balanceOf(address(this));
+    }
+
     function setMin(uint256 _min) external {
         require(msg.sender == governance, "!governance");
         min = _min;
@@ -44,28 +45,28 @@ contract Vault is ERC4626 {
     }
 
     function available() public view returns (uint256) {
-        uint256 balance = underlying.balanceOf(address(this));
+        uint256 balance = asset.balanceOf(address(this));
         return (balance * min) / max;
     }
 
     function earn() public {
         uint256 _bal = available();
-        underlying.transfer(controller, _bal);
-        IController(controller).earn(address(underlying), _bal); // check if ok
+        asset.transfer(controller, _bal);
+        IController(controller).earn(address(asset), _bal); // check if ok
     }
 
     function depositAll() external {
-        deposit(msg.sender, underlying.balanceOf(msg.sender));
+        deposit(asset.balanceOf(msg.sender), msg.sender);
     }
 
     function withdrawAll() external {
-        uint256 allShares = calculateShares(balanceOfUnderlying(msg.sender));
-        super.redeem(msg.sender, msg.sender, allShares);
+        uint256 allShares = previewRedeem(assetsOf(msg.sender));
+        redeem(allShares, msg.sender, msg.sender);
     }
 
     function harvest(address reserve, uint256 amount) external {
         require(msg.sender == controller, "!controller");
-        require(reserve != address(underlying), "token");
+        require(reserve != address(asset), "token");
         IERC20(reserve).transfer(controller, amount);
     }
 }
