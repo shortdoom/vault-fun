@@ -1,10 +1,10 @@
 # About
 
-This repository is an example of Yearn V2 Vault architecture being translated into new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation offered by [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched, Basic DAI/Compound stategy is used because of simplicity. Some function from original Yearn Vault got rewritten to operate with underlying ERC-4626. Contract is neither tested nor optimized, there is also no access control but all functions for such are implemented in new Vault.
+This repository is an example of Yearn V2 Vault architecture being translated into the new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation offered by [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched, Basic DAI/Compound strategy is used because of simplicity. Some function from the original Yearn Vault got rewritten to operate with underlying ERC-4626. Contract is neither tested nor optimized, there is also no access control, but all functions for such are implemented in new Vault.
 
-All is run against forked network with real DAI used and actual compounding from Compound. Console.log will return internal balance sheet change (interests accured) after depositing funds into strategy and waiting some blocks for profit.
+All is run against forked network with real DAI used and actual compounding from Compound. Console.log will return internal balance sheet change (interests accrued) after depositing funds into strategy and waiting some blocks for profit.
 
-This is by no means robust simulation but could be extended easily. As is, you can just verify that Yearn V2 works fine with ERC4626 by inspecting small change in accured profits from Compound strategy. However, because of size of funds on contract and underlying Yearn Controller/Strategy architecture majority of user shares stays *locked*.
+This is by no means robust simulation, but could be extended easily. As is, you can just verify that Yearn V2 works fine with ERC4626 by inspecting small change in accrued profits from Compound strategy. However, because of size of funds on contract and underlying Yearn Controller/Strategy architecture, the majority of user shares stays *locked*.
 
 ![Vault Balanace Sheet Change](sim.png)
 
