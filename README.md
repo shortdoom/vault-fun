@@ -1,81 +1,30 @@
-# Notes
+# About
 
-ERC4626.sol is minimal ready implementation for token specific Vault. Should be deployed as-is on per token basis. You can interact with ERC4626.sol (Vault for token) by creating interface in your Strategy contract and then calling ERC4626.sol functions from there. ERC4626.sol should have more logic than what is currently provided, ie. calculations for underlying. VaultFun could be for example an Strategy, using funds from the Vault.
+This repository is an example of Yearn V2 Vault architecture being translated into new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation offered by [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched, Basic DAI/Compound stategy is used because of simplicity. Some function from original Yearn Vault got rewritten to operate with underlying ERC-4626. Contract is neither tested nor optimized, there is also no access control but all functions for such are implemented in new Vault.
 
-fmulUp lib is not in solmate npm! wrong calcs
+All is run against forked network with real DAI used and actual compounding from Compound. Console.log will return internal balance sheet change (interests accured) after depositing funds into strategy and waiting some blocks for profit.
 
-## calculateShares
+This is by no means robust simulation but could be extended easily. As is, you can just verify that Yearn V2 works fine with ERC4626 by inspecting small change in accured profits from Compound strategy. However, because of size of funds on contract and underlying Yearn Controller/Strategy architecture majority of user shares stays *locked*.
 
-totalSupply == all ever minted (through deposit into underlying)
-totalUnderlying == total amount of underlying in vault (deposits+fees)
-totalSupply / totalUnderlying = 
+![Vault Balanace Sheet Change](sim.png)
 
-## Notes on working and implementing interfaces
+# How to run
 
-`contract Vault is IERC4626 {}` - Then, you implement all defined interface functions
+Set `.env.example`
 
-`contract Vault is ERC4626 {}` - This import ALREADY IMPLEMENTED functions. Only `.super`
+`yarn install`
 
-## What you can do with this interface?
+First, start the hardhat network: `npx hardhat node`
 
-1. This is Vault contract. Vault is suppose to provide logic for accounting of shares from deposited underlying tokens.
-2. Offered minimal implementation provides logic for flow of funds from user to the Vault, providing an interface for additional extensions as to how to use funds. Can be used in similar fashion to:
-    - Yield Bearing Tokens like xSushi
-    - DeFi strategies like Yearn
-    - Lending/Borrowing pools like AAVE
-3. Developer is expected to inherit or implement directly defined functions and override in child contract. For example:
-    - Change how shares are calculated. xSushi will allow users to withdraw more based on transfers made to the vault. Override calculateShare/Underlying to influence such behavior. Those are used to define amount of fee-generated income received by Vault.
-    - Define strategyBase to 4626, following yearn principles. 
+To simulate deployment and deposits run: `npx hardhat run scripts/simulate.ts --network localhost`
 
-## xSushi
+# Resources
 
-Just enter/leave and simple share calculation logic. Vault function should be only limited to share accounting and making funds available for use to other contracts (like Strategy contract). Therefore, Vault design can only be progressed as to accounting and nothing else. What other Vaults are doing? 
+Yearn V2 Contracts: https://github.com/yearn/yearn-starter-pack
 
-https://etherscan.io/address/0x8798249c2e607446efb7ad49ec89dd1865ff4272#code
+ERC4626 Discussion: https://ethereum-magicians.org/t/eip-4626-yield-bearing-vault-standard/7900/45
 
-## Yearn 
-
-Crucial to understanding yVault / Yearn V2: https://medium.com/iearn/yearn-finance-explained-what-are-vaults-and-strategies-96970560432
-- harvest call to reinvest in vault, which manages the funds. moves funds to controller which calls earn on new fund.
-- this vault is highly manual, requires scripts to call functions for state changes.
-- yearn provides baseStrategy template to create strategy compatible with yearn Vaults
-
-[Yearn Vault Ecosystem overview. Explains different parts of Yearn Vault functionality, which is split between Vault, Strategy, Router contracts & interfaces](https://github.com/yearn/yearn-devdocs/blob/master/docs/developers/v2/SPECIFICATION.md)
-
-In V2 Vaults, Vault holds funds, Controller is responsible for pulling and managing funds, it holds Strategy address.
-In V3, there is no Controller. Guardian and strategist took this role.
-
-### Task 1
-
-Compare functionalities of different protocol Vaults:
-    - Yearn, Ribbon, AAVE, Balancer, xSushi
-
-Copy whole Yearn Infra?
-    - Vault <=> Strategy
-        - Where strategy is copy of DAI-Curve without any performance fees, simplified. 
-        - Or ibEUR strategy suggested in Yearn Gov. (Prob not, share withdraw too complex)
-
-### Found Problems
-
-Doesn't compile in 0.8.5 with decimals
-Imported contract with all implementations (removed abstract)
-
-### Links
-
-Yearn Strategy descriptions: https://vaults.yearn.finance/ethereum/stables
-
-Yearn Strategy Contracts: https://yearn.watch/
-
-https://ethereum-magicians.org/t/eip-4626-yield-bearing-vault-standard/7900/12
-
-ERC4626Router is just an extension of ERC4626.sol implemented functions (which is minimal implementation of EIP, look at IERC4626 for reference). It mirrors same scheme of names, EIP specifies deposit/withdraw, Router has exactly those functions with additional logic.
-
-https://github.com/fei-protocol/ERC4626/blob/7a947f2507b760ae470578cfb106f71ff5b1a14b/src/ERC4626Router.sol#L139
-
-https://eips.ethereum.org/EIPS/eip-4626
-
-https://www.youtube.com/watch?v=L8dijE5qhTg&t=393s
-
+ERC4626 Proposal: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4626.md
 
 # Solidity Template
 

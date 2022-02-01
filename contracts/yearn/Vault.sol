@@ -56,7 +56,7 @@ contract Vault is ERC4626 {
     function earn() public {
         uint256 _bal = available();
         asset.transfer(controller, _bal);
-        IController(controller).earn(address(asset), _bal); // check if ok
+        IController(controller).earn(address(asset), _bal);
     }
 
     function depositAll() external {

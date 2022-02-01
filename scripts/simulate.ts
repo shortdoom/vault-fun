@@ -1,16 +1,16 @@
 import { ethers } from "hardhat";
 import { Contract } from "ethers";
-import { Controller__factory, Strategy, StrategyDAICompoundBasic__factory, Vault__factory } from "../typechain";
-import { TestToken__factory } from "../typechain";
+import { Controller__factory, StrategyDAICompoundBasic__factory, Vault__factory } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import hre from "hardhat";
 import {DAI_ABI} from "./abi/DAI";
+import {checkUserBalances, checkSingleBalance, vaultBalanceSheet, mineBlocks} from "./helpers/helpers";
+
+import hre from "hardhat";
 
 const DAI_ADDRESS = "0x6b175474e89094c44da98b954eedeac495271d0f"
 
 async function main(): Promise<void> {
   let signers: SignerWithAddress[];
-  let ERC20Contract: Contract;
   let DAIContract: Contract;
   let controllerContract: Contract;
   let vaultContract: Contract;
@@ -36,20 +36,13 @@ async function main(): Promise<void> {
     }
   }
 
-  async function mineBlocks() {
-    for (let index = 0; index < 10; index++) {
-      console.log("mining block", index);
-      await ethers.provider.send("evm_mine", []);
-    }
-  }
-
   await deployController();
   await deployVault();
   await deployAndSetStrategy();
   await depositSomeUnderlyingToVault();
   await callEarnOnVault();
   await callHarvestFromStrat();
-
+  await testWithdrawFromVault();
 
   async function deployController() {
     const controllerFactory = new Controller__factory(deployer);
@@ -67,35 +60,6 @@ async function main(): Promise<void> {
     );
   }
 
-  async function checkUserBalances() {
-    for (let i = 0; i <= signers.slice(0, 3).length; i++) {
-      const vaultInstance = vaultContract.connect(signers[i]);
-      const userUnderlyingInVault = await vaultInstance.assetsOf(signers[i].address);
-      const userSharesFromUnderlying = await vaultInstance.previewRedeem(userUnderlyingInVault);
-      const totalUnderlyingInVault = await vaultInstance.totalAssets();
-      const result =
-        "totalAssets: " +
-        ethers.utils.formatUnits(totalUnderlyingInVault) +
-        " user underlyingInVault: " +
-        ethers.utils.formatUnits(userUnderlyingInVault.toString()) +
-        " user sharesFromUnderlying: " +
-        ethers.utils.formatUnits(userSharesFromUnderlying.toString());
-      console.log(result);
-    }
-  }
-
-  async function vaultBalanceSheet() {
-    const balance = await vaultContract.balance();
-    console.log("balance:", ethers.utils.formatUnits(balance.toString()))
-    const balanceOf = await strategyContract.balanceOf()
-    console.log("balanceOf:", ethers.utils.formatUnits(balanceOf.toString()));
-    const balanceC = await strategyContract.balanceC()
-    console.log("balanceC:", ethers.utils.formatUnits(balanceC.toString()));
-    const balanceCInToken = await strategyContract.balanceCInToken()
-    console.log("balanceCInToken:", ethers.utils.formatUnits(balanceCInToken.toString()));
-  }
-
-  // Add Converter to strategy
   async function deployAndSetStrategy() {
     const strategyFactory = new StrategyDAICompoundBasic__factory(deployer);
     strategyContract = await strategyFactory.deploy(controllerContract.address);
@@ -112,19 +76,26 @@ async function main(): Promise<void> {
       await instanceERC.approve(vaultContract.address, depositAmount);
       await instanceVAULT.deposit(depositAmount, signers[i].address);
     }
-    await checkUserBalances();
+    await checkUserBalances(signers, vaultContract);
+    await vaultBalanceSheet(vaultContract, strategyContract);
   }
 
   async function callEarnOnVault() {
     await vaultContract.earn();
     await mineBlocks();
-    await checkUserBalances();
+    await checkUserBalances(signers, vaultContract);
   }
 
   // take funds from vault and readjust
   async function callHarvestFromStrat() {
     await strategyContract.harvest()
-    await vaultBalanceSheet();
+    await vaultBalanceSheet(vaultContract, strategyContract);
+  }
+
+  async function testWithdrawFromVault() {
+    await vaultContract.withdrawAll();
+    await checkSingleBalance(deployer, vaultContract);
+    // check how much shares EOA has, claim underlying, check how much underlying now you have
   }
 }
 
