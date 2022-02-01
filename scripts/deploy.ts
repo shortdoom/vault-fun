@@ -36,26 +36,20 @@ async function main(): Promise<void> {
     }
   }
 
-  // await mintUnderlyingMockToken();
+  async function mineBlocks() {
+    for (let index = 0; index < 10; index++) {
+      console.log("mining block", index);
+      await ethers.provider.send("evm_mine", []);
+    }
+  }
+
   await deployController();
   await deployVault();
   await deployAndSetStrategy();
   await depositSomeUnderlyingToVault();
-  await checkUserBalances();
   await callEarnOnVault();
-  await checkUserBalances();
   await callHarvestFromStrat();
 
-
-  async function mintUnderlyingMockToken() {
-    const ERC20Factory = new TestToken__factory(deployer);
-    ERC20Contract = await ERC20Factory.deploy();
-    const toMint = ethers.utils.parseEther("1000");
-    for (let i = 0; i < signers.length; i++) {
-      const instanceERC = ERC20Contract.connect(signers[i]);
-      await instanceERC.mint(signers[i].address, toMint);
-    }
-  }
 
   async function deployController() {
     const controllerFactory = new Controller__factory(deployer);
@@ -82,12 +76,23 @@ async function main(): Promise<void> {
       const result =
         "totalAssets: " +
         ethers.utils.formatUnits(totalUnderlyingInVault) +
-        " User underlyingInVault: " +
+        " user underlyingInVault: " +
         ethers.utils.formatUnits(userUnderlyingInVault.toString()) +
         " user sharesFromUnderlying: " +
         ethers.utils.formatUnits(userSharesFromUnderlying.toString());
       console.log(result);
     }
+  }
+
+  async function vaultBalanceSheet() {
+    const balance = await vaultContract.balance();
+    console.log("balance:", ethers.utils.formatUnits(balance.toString()))
+    const balanceOf = await strategyContract.balanceOf()
+    console.log("balanceOf:", ethers.utils.formatUnits(balanceOf.toString()));
+    const balanceC = await strategyContract.balanceC()
+    console.log("balanceC:", ethers.utils.formatUnits(balanceC.toString()));
+    const balanceCInToken = await strategyContract.balanceCInToken()
+    console.log("balanceCInToken:", ethers.utils.formatUnits(balanceCInToken.toString()));
   }
 
   // Add Converter to strategy
@@ -107,22 +112,19 @@ async function main(): Promise<void> {
       await instanceERC.approve(vaultContract.address, depositAmount);
       await instanceVAULT.deposit(depositAmount, signers[i].address);
     }
+    await checkUserBalances();
   }
 
   async function callEarnOnVault() {
     await vaultContract.earn();
-    for (let index = 0; index < 10; index++) {
-      console.log("mining block", index);
-      await ethers.provider.send("evm_mine", []);
-    }
+    await mineBlocks();
+    await checkUserBalances();
   }
 
+  // take funds from vault and readjust
   async function callHarvestFromStrat() {
     await strategyContract.harvest()
-    const balanceOfWant = await strategyContract.balanceOfWant()
-    console.log("balanceOfWant:", balanceOfWant.toString());
-    // await controllerContract.withdrawAll(DAI_ADDRESS)
-    // await checkUserBalances()
+    await vaultBalanceSheet();
   }
 }
 

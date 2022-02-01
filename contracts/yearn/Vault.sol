@@ -25,6 +25,10 @@ contract Vault is ERC4626 {
         governance = _governance;
     }
 
+    function balance() public view returns (uint256) {
+        return asset.balanceOf(address(this)) + (IController(controller).balanceOf(address(asset)));
+    }
+
     function totalAssets() public view override returns (uint256) {
         return asset.balanceOf(address(this));
     }
@@ -45,8 +49,8 @@ contract Vault is ERC4626 {
     }
 
     function available() public view returns (uint256) {
-        uint256 balance = asset.balanceOf(address(this));
-        return (balance * min) / max;
+        uint256 balanceAvialable = asset.balanceOf(address(this));
+        return (balanceAvialable * min) / max;
     }
 
     function earn() public {
