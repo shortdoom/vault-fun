@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 import { ERC20 } from "@rari-capital/solmate/src/tokens/ERC20.sol";
 import { SafeTransferLib } from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-import {FixedPointMathLib} from "./utils/FixedPointMath.sol";
+import {FixedPointMathLib} from "./FixedPointMath.sol";
 
 /// @notice Minimal ERC4646 tokenized vault implementation.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)

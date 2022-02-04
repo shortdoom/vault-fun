@@ -9,7 +9,7 @@ export async function checkUserBalances(signers: SignerWithAddress[], vaultContr
       const userSharesFromUnderlying = await vaultInstance.previewRedeem(userUnderlyingInVault);
       const totalUnderlyingInVault = await vaultInstance.totalAssets();
       const result =
-        "totalAssets: " +
+        "vault+strategyContract totalAssets:: " +
         ethers.utils.formatUnits(totalUnderlyingInVault) +
         " user underlyingInVault: " +
         ethers.utils.formatUnits(userUnderlyingInVault.toString()) +
@@ -25,7 +25,7 @@ export async function checkSingleBalance(signer: SignerWithAddress, vaultContrac
       const userSharesFromUnderlying = await vaultInstance.previewRedeem(userUnderlyingInVault);
       const totalUnderlyingInVault = await vaultInstance.totalAssets();
       const result =
-        "totalAssets: " +
+        "vault+strategyContract totalAssets: " +
         ethers.utils.formatUnits(totalUnderlyingInVault) +
         " user underlyingInVault: " +
         ethers.utils.formatUnits(userUnderlyingInVault.toString()) +
@@ -36,14 +36,14 @@ export async function checkSingleBalance(signer: SignerWithAddress, vaultContrac
   }
 
 export async function vaultBalanceSheet(vaultContract: Contract, strategyContract: Contract) {
-    const balance = await vaultContract.balance();
-    console.log("balance:", ethers.utils.formatUnits(balance.toString()))
+    const balance = await vaultContract.totalAssets();
+    console.log("vault+strategyContract totalAssets:", ethers.utils.formatUnits(balance.toString()))
     const balanceOf = await strategyContract.balanceOf()
-    console.log("balanceOf:", ethers.utils.formatUnits(balanceOf.toString()));
+    console.log("strategyContract balanceOf:", ethers.utils.formatUnits(balanceOf.toString()));
     const balanceC = await strategyContract.balanceC()
-    console.log("balanceC:", ethers.utils.formatUnits(balanceC.toString()));
+    console.log("strategyContract balanceC:", ethers.utils.formatUnits(balanceC.toString()));
     const balanceCInToken = await strategyContract.balanceCInToken()
-    console.log("balanceCInToken:", ethers.utils.formatUnits(balanceCInToken.toString()));
+    console.log("strategyContract balanceCInToken:", ethers.utils.formatUnits(balanceCInToken.toString()));
   }
 
 export async function mineBlocks() {

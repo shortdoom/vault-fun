@@ -65,6 +65,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StrategyDAICompoundBasic__factory>;
     getContractFactory(
+      name: "ERC4626",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC4626__factory>;
+    getContractFactory(
       name: "TestToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestToken__factory>;
@@ -138,6 +142,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.StrategyDAICompoundBasic>;
+    getContractAt(
+      name: "ERC4626",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC4626>;
     getContractAt(
       name: "TestToken",
       address: string,

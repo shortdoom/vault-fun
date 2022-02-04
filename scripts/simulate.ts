@@ -17,7 +17,7 @@ async function main(): Promise<void> {
   let strategyContract: Contract;
 
   const [deployer, user1, user2, user3] = await ethers.getSigners();
-  signers = [deployer, user1, user2, user3];
+  signers = await ethers.getSigners();
   
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
@@ -42,10 +42,10 @@ async function main(): Promise<void> {
   await depositSomeUnderlyingToVault();
   await callEarnOnVault();
   await callHarvestFromStrat();
-  await testWithdrawFromVault();
 
   async function deployController() {
     const controllerFactory = new Controller__factory(deployer);
+    // rewards accumulated in Vault (set rewards later)
     controllerContract = await controllerFactory.deploy("0x0000000000000000000000000000000000000000");
   }
 
@@ -86,17 +86,24 @@ async function main(): Promise<void> {
     await checkUserBalances(signers, vaultContract);
   }
 
-  // take funds from vault and readjust
   async function callHarvestFromStrat() {
     await strategyContract.harvest()
     await vaultBalanceSheet(vaultContract, strategyContract);
   }
 
-  async function testWithdrawFromVault() {
-    await vaultContract.withdrawAll();
+  await redeemShares();
+
+  async function redeemShares() {
+    const userShareTokenBalance = await vaultContract.balanceOf(deployer.address);
+    console.log("userSharetoken", ethers.utils.formatUnits(userShareTokenBalance.toString()))
+    const userEarningsOnShare = await vaultContract.previewRedeem(userShareTokenBalance);
+    console.log("userEarningsOnShare", ethers.utils.formatUnits(userEarningsOnShare.toString()))
+    await vaultContract.redeem(userShareTokenBalance, deployer.address, deployer.address);
     await checkSingleBalance(deployer, vaultContract);
-    // check how much shares EOA has, claim underlying, check how much underlying now you have
+    await vaultBalanceSheet(vaultContract, strategyContract);
   }
+
+
 }
 
 main()
