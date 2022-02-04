@@ -3,7 +3,6 @@ import { Contract } from "ethers";
 import { Controller__factory, StrategyDAICompoundBasic__factory, Vault__factory } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {DAI_ABI} from "./abi/DAI";
-import { ERC20ABI } from "./abi/ERC20";
 import {checkUserBalances, checkSingleBalance, vaultBalanceSheet, mineBlocks} from "./helpers/helpers";
 
 import hre from "hardhat";
@@ -43,7 +42,6 @@ async function main(): Promise<void> {
   await depositSomeUnderlyingToVault();
   await callEarnOnVault();
   await callHarvestFromStrat();
-  // await testWithdrawFromVault();
 
   async function deployController() {
     const controllerFactory = new Controller__factory(deployer);
@@ -88,15 +86,9 @@ async function main(): Promise<void> {
     await checkUserBalances(signers, vaultContract);
   }
 
-  // take funds from vault and readjust
   async function callHarvestFromStrat() {
     await strategyContract.harvest()
     await vaultBalanceSheet(vaultContract, strategyContract);
-  }
-
-  async function testWithdrawFromVault() {
-    await vaultContract.withdrawAll();
-    await checkSingleBalance(deployer, vaultContract);
   }
 
   await redeemShares();
