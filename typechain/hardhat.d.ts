@@ -21,9 +21,61 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Controller__factory>;
     getContractFactory(
+      name: "Comptroller",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Comptroller__factory>;
+    getContractFactory(
+      name: "Converter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Converter__factory>;
+    getContractFactory(
+      name: "CToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CToken__factory>;
+    getContractFactory(
+      name: "IController",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IController__factory>;
+    getContractFactory(
+      name: "IERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
+      name: "IERC4626",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC4626__factory>;
+    getContractFactory(
+      name: "OneSplitAudit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.OneSplitAudit__factory>;
+    getContractFactory(
+      name: "Strategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Strategy__factory>;
+    getContractFactory(
+      name: "Uni",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Uni__factory>;
+    getContractFactory(
+      name: "StrategyDAICompoundBasic",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.StrategyDAICompoundBasic__factory>;
+    getContractFactory(
       name: "ERC4626",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC4626__factory>;
+    getContractFactory(
+      name: "TestToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TestToken__factory>;
+    getContractFactory(
+      name: "Vault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Vault__factory>;
+    getContractFactory(
+      name: "Controller",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Controller__factory>;
     getContractFactory(
       name: "Comptroller",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -88,10 +140,75 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Controller>;
     getContractAt(
+      name: "Comptroller",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Comptroller>;
+    getContractAt(
+      name: "Converter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Converter>;
+    getContractAt(
+      name: "CToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CToken>;
+    getContractAt(
+      name: "IController",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IController>;
+    getContractAt(
+      name: "IERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "IERC4626",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC4626>;
+    getContractAt(
+      name: "OneSplitAudit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.OneSplitAudit>;
+    getContractAt(
+      name: "Strategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Strategy>;
+    getContractAt(
+      name: "Uni",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Uni>;
+    getContractAt(
+      name: "StrategyDAICompoundBasic",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.StrategyDAICompoundBasic>;
+    getContractAt(
       name: "ERC4626",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ERC4626>;
+    getContractAt(
+      name: "TestToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TestToken>;
+    getContractAt(
+      name: "Vault",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Vault>;
+    getContractAt(
+      name: "Controller",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Controller>;
     getContractAt(
       name: "Comptroller",
       address: string,

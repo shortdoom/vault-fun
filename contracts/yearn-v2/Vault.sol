@@ -192,4 +192,12 @@ contract Vault is ERC20, IERC4626 {
         require(reserve != address(asset), "token");
         IERC20(reserve).transfer(controller, amount);
     }
+
+    function depositAll() external {
+        deposit(asset.balanceOf(msg.sender), msg.sender);
+    }
+
+    function withdrawAll() external {
+        withdraw(assetsOf(msg.sender), msg.sender, msg.sender);
+    }
 }
