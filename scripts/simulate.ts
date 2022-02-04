@@ -3,6 +3,7 @@ import { Contract } from "ethers";
 import { Controller__factory, StrategyDAICompoundBasic__factory, Vault__factory } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {DAI_ABI} from "./abi/DAI";
+import { ERC20ABI } from "./abi/ERC20";
 import {checkUserBalances, checkSingleBalance, vaultBalanceSheet, mineBlocks} from "./helpers/helpers";
 
 import hre from "hardhat";
@@ -17,7 +18,7 @@ async function main(): Promise<void> {
   let strategyContract: Contract;
 
   const [deployer, user1, user2, user3] = await ethers.getSigners();
-  signers = [deployer, user1, user2, user3];
+  signers = await ethers.getSigners();
   
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
@@ -42,10 +43,11 @@ async function main(): Promise<void> {
   await depositSomeUnderlyingToVault();
   await callEarnOnVault();
   await callHarvestFromStrat();
-  await testWithdrawFromVault();
+  // await testWithdrawFromVault();
 
   async function deployController() {
     const controllerFactory = new Controller__factory(deployer);
+    // rewards accumulated in Vault (set rewards later)
     controllerContract = await controllerFactory.deploy("0x0000000000000000000000000000000000000000");
   }
 
@@ -95,8 +97,21 @@ async function main(): Promise<void> {
   async function testWithdrawFromVault() {
     await vaultContract.withdrawAll();
     await checkSingleBalance(deployer, vaultContract);
-    // check how much shares EOA has, claim underlying, check how much underlying now you have
   }
+
+  await redeemShares();
+
+  async function redeemShares() {
+    const userShareTokenBalance = await vaultContract.balanceOf(deployer.address);
+    console.log("userSharetoken", ethers.utils.formatUnits(userShareTokenBalance.toString()))
+    const userEarningsOnShare = await vaultContract.previewRedeem(userShareTokenBalance);
+    console.log("userEarningsOnShare", ethers.utils.formatUnits(userEarningsOnShare.toString()))
+    await vaultContract.redeem(userShareTokenBalance, deployer.address, deployer.address);
+    await checkSingleBalance(deployer, vaultContract);
+    await vaultBalanceSheet(vaultContract, strategyContract);
+  }
+
+
 }
 
 main()
