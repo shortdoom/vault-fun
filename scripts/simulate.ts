@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { Controller__factory, StrategyDAICompoundBasic__factory, Vault__factory } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {DAI_ABI} from "./abi/DAI";
@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   let vaultContract: Contract;
   let strategyContract: Contract;
 
-  const [deployer, user1, user2, user3] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
   signers = await ethers.getSigners();
   
   await hre.network.provider.request({
@@ -30,7 +30,7 @@ async function main(): Promise<void> {
   await transferDaiToSigners();
 
   async function transferDaiToSigners() {
-    const toMint = ethers.utils.parseEther("11000");
+    const toMint = ethers.utils.parseEther("110000");
     for (let i = 0; i < signers.length; i++) {
       await DAIContract.transfer(signers[i].address, toMint);
     }
@@ -53,8 +53,8 @@ async function main(): Promise<void> {
     const vaultFactory = new Vault__factory(deployer);
     vaultContract = await vaultFactory.deploy(
       DAI_ADDRESS,
-      "4626-Sushi",
-      "46xS",
+      "DaiVault",
+      "yDAI",
       deployer.address,
       controllerContract.address,
     );
@@ -96,9 +96,9 @@ async function main(): Promise<void> {
   async function redeemShares() {
     const userShareTokenBalance = await vaultContract.balanceOf(deployer.address);
     console.log("userSharetoken", ethers.utils.formatUnits(userShareTokenBalance.toString()))
-    const userEarningsOnShare = await vaultContract.previewRedeem(userShareTokenBalance);
+    const userEarningsOnShare: BigNumber = await vaultContract.previewRedeem(userShareTokenBalance);
     console.log("userEarningsOnShare", ethers.utils.formatUnits(userEarningsOnShare.toString()))
-    await vaultContract.redeem(userShareTokenBalance, deployer.address, deployer.address);
+    await vaultContract.redeem(userShareTokenBalance, deployer.address, deployer.address); // amount, to, from
     await checkSingleBalance(deployer, vaultContract);
     await vaultBalanceSheet(vaultContract, strategyContract);
   }
