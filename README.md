@@ -1,10 +1,19 @@
 # About
 
-This repository is an example of Yearn V2 Vault architecture being translated into the new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation offered by [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched, Basic DAI/Compound strategy is used because of simplicity. Some function from the original Yearn Vault got rewritten to operate with underlying ERC-4626. Contract is neither tested nor optimized, there is also no access control, but all functions for such are implemented in new Vault.
+This repository is an example of Yearn V2 Vault architecture translated into new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation of [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched. Basic DAI/Compound stategy is used because of it's simplicity. Some functions from original Yearn Vault got rewritten to operate with underlying ERC-4626. Contract is neither tested nor optimized.
 
 All is run against forked network with real DAI used and actual compounding from Compound. Console.log will return internal balance sheet change (interests accrued) after depositing funds into strategy and waiting some blocks for profit.
 
-This is by no means robust simulation, but could be extended easily. As is, you can just verify that Yearn V2 works fine with ERC4626 by inspecting small change in accrued profits from Compound strategy. However, because of size of funds on contract and underlying Yearn Controller/Strategy architecture, the majority of user shares stays *locked*.
+
+This is by no means robust simulation but could be extended easily. As is, you can just verify that Yearn V2 works fine with ERC4626 through inspection of a small change in accured profits from Compound strategy. 
+
+### To do / Future
+
+I may decide to grow this repository into collection of different small projects build on ERC-4626.
+
+1. Yearn is an example of aggregator vault. It would be interesting to build lending (aave) or options (ribbon) vault minimal example.
+2. Stablecoins / Pegged tokens could also be a target of vault-fun.
+3. Swap-like pools, e.g Balancer.
 
 ![Vault Balanace Sheet Change](sim.png)
 
@@ -18,13 +27,15 @@ First, start the hardhat network: `npx hardhat node`
 
 To simulate deployment and deposits run: `npx hardhat run scripts/simulate.ts --network localhost`
 
+There is currently no test beyond basic deployment of Vault + Strategy to a local hardhat network.
+
 # Resources
+
+ERC4626 Proposal: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4626.md
 
 Yearn V2 Contracts: https://github.com/yearn/yearn-starter-pack
 
 ERC4626 Discussion: https://ethereum-magicians.org/t/eip-4626-yield-bearing-vault-standard/7900/45
-
-ERC4626 Proposal: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4626.md
 
 # Solidity Template
 

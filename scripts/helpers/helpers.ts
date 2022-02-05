@@ -12,7 +12,7 @@ export async function checkUserBalances(signers: SignerWithAddress[], vaultContr
       const result =
         "vault+strategyContract totalAssets:: " +
         ethers.utils.formatUnits(totalUnderlyingInVault) +
-        "availableInVaultOutsideStrat: " +
+        " availableInVaultOutsideStrat: " +
         ethers.utils.formatUnits(availableInVaultOutsideStrat) +
         " user underlyingInVault: " +
         ethers.utils.formatUnits(userUnderlyingInVault.toString()) +
@@ -31,7 +31,7 @@ export async function checkSingleBalance(signer: SignerWithAddress, vaultContrac
       const result =
         "vault+strategyContract totalAssets: " +
         ethers.utils.formatUnits(totalUnderlyingInVault) +
-        "availableInVaultOutsideStrat: " +
+        " availableInVaultOutsideStrat: " +
         ethers.utils.formatUnits(availableInVaultOutsideStrat) +
         " user underlyingInVault: " +
         ethers.utils.formatUnits(userUnderlyingInVault.toString()) +
@@ -55,7 +55,7 @@ export async function vaultBalanceSheet(vaultContract: Contract, strategyContrac
   }
 
 export async function mineBlocks() {
-    for (let index = 0; index < 1337; index++) {
+    for (let index = 0; index < 137; index++) {
       console.log("mining block", index);
       await ethers.provider.send("evm_mine", []);
     }

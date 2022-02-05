@@ -70,7 +70,7 @@ const config: HardhatUserConfig = {
         blockNumber: 14003880,
       },
       accounts: {
-        count: 15,
+        count: 5,
         mnemonic: MNEMONIC,
       },
       chainId: chainIds.hardhat,
