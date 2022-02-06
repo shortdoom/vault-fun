@@ -69,10 +69,8 @@ contract Vault is ERC20, IERC4626 {
 
         uint256 assetAvailable = asset.balanceOf(address(this));
 
-        if (shares > assetAvailable) {
-            /// @notice withdraw 0.2% more to Vault. covers withdraw/performance fees of strat. leftover dust. works only with 1e18
-            uint256 _withdraw = shares - (assetAvailable - ((assetAvailable / 1000) * 20));
-            IController(controller).withdraw(address(asset), _withdraw);
+        if (amount > assetAvailable) {
+            transferFromStrategy(amount, assetAvailable);
         }
 
         _burn(from, shares = previewWithdraw(amount));
@@ -94,9 +92,7 @@ contract Vault is ERC20, IERC4626 {
 
         uint256 sharesAvailable = asset.balanceOf(address(this));
         if (shares > sharesAvailable) {
-            /// @notice withdraw 0.2% more to Vault. covers withdraw/performance fees of strat. leftover dust. works only with 1e18
-            uint256 _withdraw = shares - (sharesAvailable - ((sharesAvailable / 1000) * 20));
-            IController(controller).withdraw(address(asset), _withdraw);
+            transferFromStrategy(shares, sharesAvailable);
         }
 
         amount = previewRedeem(shares);
@@ -107,6 +103,12 @@ contract Vault is ERC20, IERC4626 {
         beforeWithdraw(amount);
 
         asset.safeTransfer(to, amount);
+    }
+
+    /// @notice Withdraw at least requested amount to the Vault. Covers withdraw/performance fees of strat. Leaves dust tokens. Works only with 1e18
+    function transferFromStrategy(uint256 amount, uint256 amountAvailable) internal {
+        uint256 _withdraw = (amount + ((amount * 50) / 10000)) - amountAvailable;
+        IController(controller).withdraw(address(asset), _withdraw);
     }
 
     /*///////////////////////////////////////////////////////////////
