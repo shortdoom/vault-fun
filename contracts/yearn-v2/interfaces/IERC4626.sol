@@ -8,9 +8,9 @@ abstract contract IERC4626 is ERC20 {
                                 Events
     //////////////////////////////////////////////////////////////*/
 
-    event Deposit(address indexed from, address indexed to, uint256 value);
+    event Deposit(address indexed from, address indexed to, uint256 amount, uint256 shares);
+    event Withdraw(address indexed from, address indexed to, uint256 amount, uint256 shares);
 
-    event Withdraw(address indexed from, address indexed to, uint256 value);
 
     /*///////////////////////////////////////////////////////////////
                             Mutable Functions
@@ -41,6 +41,14 @@ abstract contract IERC4626 is ERC20 {
     function assetsOf(address user) public view virtual returns (uint256);
 
     function assetsPerShare() public view virtual returns (uint256);
+
+    function maxDeposit(address) public virtual returns (uint256);
+
+    function maxMint(address) public virtual returns (uint256);
+
+    function maxRedeem(address user) public view virtual returns (uint256);
+
+    function maxWithdraw(address user) public view virtual returns (uint256);
 
     /**
       @notice Returns the amount of vault tokens that would be obtained if depositing a given amount of underlying tokens in a `deposit` call.

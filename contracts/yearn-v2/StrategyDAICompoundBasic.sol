@@ -117,7 +117,6 @@ contract StrategyDAICompoundBasic{
         require(msg.sender == strategist || msg.sender == governance, "!authorized");
         compound.claimComp(address(this));
         uint256 _comp = IERC20(comp).balanceOf(address(this));
-        console.log("comp", _comp); // ADD
         if (_comp > 0) {
             IERC20(comp).approve(uni, 0);
             IERC20(comp).approve(uni, _comp);
