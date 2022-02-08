@@ -1,21 +1,18 @@
 # About
 
-This repository is an example of Yearn V2 Vault architecture translated into new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation of [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched. Basic DAI/Compound stategy is used because of it's simplicity. Some functions from original Yearn Vault got rewritten to operate with underlying ERC-4626. Contract is neither tested nor optimized.
+This repository is an example of Yearn V2 Vault architecture translated into new ERC-4626 proposed standard for Vaults. Yearn Vault contract is exchanged with minimal implementation of [Rari's solmate](https://github.com/Rari-Capital/solmate) ERC-4626. Controller and Strategy contracts are left untouched. Basic DAI/Compound stategy is used because of it's simplicity. Some functions from original Yearn Vault got rewritten to operate with underlying ERC-4626, that is usually noted through NatSpec's @notice tag. Contract is neither tested nor optimized.
 
 All is run against forked network with real DAI used and actual compounding from Compound. Console.log will return internal balance sheet change (interests accrued) after depositing funds into strategy and waiting some blocks for profit.
 
-
 This is by no means robust simulation but could be extended easily. As is, you can just verify that Yearn V2 works fine with ERC4626 through inspection of a small change in accured profits from Compound strategy. 
 
-### To do / Future
+![Vault Balanace Sheet Change](sim.png)
 
-I may decide to grow this repository into collection of different small projects build on ERC-4626.
+### To do / Future
 
 1. Yearn is an example of aggregator vault. It would be interesting to build lending (aave) or options (ribbon) vault minimal example.
 2. Stablecoins / Pegged tokens could also be a target of vault-fun.
 3. Swap-like pools, e.g Balancer.
-
-![Vault Balanace Sheet Change](sim.png)
 
 # How to run
 

@@ -2,12 +2,13 @@
 pragma solidity ^0.8.0;
 
 import { ERC20 } from "@rari-capital/solmate/src/tokens/ERC20.sol";
+import { SafeTransferLib } from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import { IERC20 } from "./interfaces/IERC20.sol";
 import { IERC4626 } from "./interfaces/IERC4626.sol";
 import { FixedPointMathLib } from "./utils/FixedPointMath.sol";
-import { SafeTransferLib } from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-import "hardhat/console.sol";
 import "./interfaces/IController.sol";
+
+import "hardhat/console.sol";
 
 contract Vault is ERC20, IERC4626 {
     using SafeTransferLib for ERC20;
@@ -121,11 +122,12 @@ contract Vault is ERC20, IERC4626 {
     function afterDeposit(uint256 amount) internal {}
 
     /*///////////////////////////////////////////////////////////////
-                            View Functions
+                        ACCOUNTING LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Sum of idle funds and funds deployed to Strategy.
     function totalAssets() public view override returns (uint256) {
-        return asset.balanceOf(address(this)) + IController(controller).balanceOf(address(asset));
+        return idleFloat() + IController(controller).balanceOf(address(asset));
     }
 
     function assetsOf(address user) public view override returns (uint256) {
@@ -208,6 +210,7 @@ contract Vault is ERC20, IERC4626 {
         controller = _controller;
     }
 
+    /// @notice Transfer any available and not limited by cap funds to Controller (=>Strategy).
     function earn() public {
         uint256 _bal = freeFloat();
         asset.transfer(controller, _bal);
